@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour {
 	public const int BLUE_SQUARE = 8;
 
 	public int score = 0;
+	public int highestscore = 0;
 
 	public GameObject[] buttonShape = new GameObject[3];
 
@@ -38,10 +39,18 @@ public class GameManager : MonoBehaviour {
 	public GameObject[] ImageShape = new GameObject[3];
 
 	public GameObject TextPoint;
+	public GameObject TextHighestPoint;
 
 	public GameObject TextGameOver;
 
 	public GameObject[] ImageMove = new GameObject[3];
+
+	public AudioClip clearSE;
+	public AudioClip GameBGM;
+
+	private AudioSource source;
+
+	public GameObject ButtonRetry;
 
 	// Use this for initialization
 	void Start () {
@@ -49,11 +58,13 @@ public class GameManager : MonoBehaviour {
 		buttonselect [1] = RED_CIRCLE;
 		buttonselect [2] = BLUE_CIRCLE;
 		target = YELLOW_TRIANGLE;
+		source = gameObject.GetComponent<AudioSource>();
+		ButtonRetry.SetActive(false);
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
-		
+
 	}
 	public void PushButonLeft(){
 		ChangeTarget (0);
@@ -63,6 +74,26 @@ public class GameManager : MonoBehaviour {
 	}
 	public void PushButonRight(){
 		ChangeTarget (2);
+	}
+
+	public void PushButtonReset(){
+		if(highestscore < score){
+			TextHighestPoint.GetComponent<Text> ().text = score.ToString();
+			highestscore = score;
+		}
+		source.PlayOneShot(GameBGM);
+		score = 0;
+		DisplayScore (score);
+		for(int i = 0;i < 3;i++){
+			buttonShape [i].GetComponent<Image> ().sprite = Obje [i*3];
+			ImageShape [i].GetComponent<Image> ().sprite = Obje [i*3];
+			buttonShape [i].SetActive (true);
+			ImageShape [i].SetActive (false);
+		}
+		ImageTarget.GetComponent<Image> ().sprite = Obje[0];
+		ImageTarget.SetActive(true);
+
+		Start();
 	}
 
 	void ChangeTarget(int buttonNo){
@@ -126,22 +157,7 @@ public class GameManager : MonoBehaviour {
 
 		DisplayScore (score);
 		if ((buttonShape [0].activeSelf == false) && (buttonShape [1].activeSelf == false) && (buttonShape [2].activeSelf == false)) {
-			TextGameOver.GetComponent<Text> ().text = "得点 : " + score.ToString() ;
-			if (score < 30) {
-				TextGameOver.GetComponent<Text> ().text += "\n低すぎて草\nいとわろし";
-			} else if (30 < score && score < 70) {
-				TextGameOver.GetComponent<Text> ().text += "\nこれが・・・\nあなたの・・・\n実力・・・!";
-			} else if (70 < score && score < 100) {
-				TextGameOver.GetComponent<Text> ().text += "\n神社に来たのに５円玉がない\nそんな気分";
-			} else if (100 < score && score < 200) {
-				TextGameOver.GetComponent<Text> ().text += "\nおめでとう!\n今日は焼肉だ!";
-			} else if (200 < score) {
-				TextGameOver.GetComponent<Text> ().text　 += "\nここが最先端だ";
-			}
-			StartCoroutine ("Ending");
-			//TextGameOver.SetActive (true);
-			//yield return new WaitForSeconds(2);
-			//TextGameOver.SetActive (false);
+			GameOver();
 		}
 	}
 
@@ -153,13 +169,43 @@ public class GameManager : MonoBehaviour {
 	}
 
 	IEnumerator Ending (){
+		source.Stop();
+		source.PlayOneShot(clearSE);
 		TextGameOver.SetActive (true);
-		yield return new WaitForSeconds(8);
+		yield return new WaitForSeconds(4);
+
+		for(int i = 0;i < 3;i++){
+			buttonShape [i].SetActive (false);
+			ImageShape [i].SetActive (false);
+			ImageMove[i].SetActive(false);
+		}
+		ImageTarget.SetActive(false);
+
 		TextGameOver.SetActive (false);
+		ButtonRetry.SetActive(true);
 	}
 
 
-	void DisplayScore(int score){
+	public void DisplayScore(int score){
 		TextPoint.GetComponent<Text> ().text = score.ToString();
+	}
+
+	public void GameOver(){
+		TextGameOver.GetComponent<Text> ().text = "得点 : " + score.ToString() ;
+		if (score < 30) {
+			TextGameOver.GetComponent<Text> ().text += "\nもっと\n上を目指そう!";
+		} else if (30 <= score && score < 70) {
+			TextGameOver.GetComponent<Text> ().text += "\nこれが・・・\nあなたの・・・\n実力・・・!";
+		} else if (70 <= score && score < 100) {
+			TextGameOver.GetComponent<Text> ().text += "\n神社に来たのに５円玉がない\nそんな気分";
+		} else if (100 <= score && score < 200) {
+			TextGameOver.GetComponent<Text> ().text += "\nおめでとう!\n今日は焼肉だ!";
+		} else if (200 <= score) {
+			TextGameOver.GetComponent<Text> ().text　 += "\nすごい!\nこのゲームで食っていけるぞ！";
+		}
+		StartCoroutine ("Ending");
+		//TextGameOver.SetActive (true);
+		//yield return new WaitForSeconds(2);
+		//TextGameOver.SetActive (false);
 	}
 }
